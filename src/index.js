@@ -12,6 +12,8 @@ function readMultipleFiles(evt) {
   //Retrieve all the files from the FileList object
   const files = evt.target.files;
   const p = document.getElementById('text_change');
+  const $QMatrix = document.querySelector('#q-matrix')
+  const $RMatrix = document.querySelector('#r-matrix')
 
   if (files) {
     for (var i = 0, f;
@@ -57,7 +59,24 @@ function readMultipleFiles(evt) {
             RMatrix._data[index][index] = 0
           })
 
-          
+          console.log({QMatrix, RMatrix})
+
+          QMatrix.forEach(el => {
+            const $cell = document.createElement('div')
+            $cell.className = 'cell'
+            $cell.innerHTML = el
+            $QMatrix.appendChild($cell)
+          })
+
+          RMatrix.forEach(el => {
+            const $cell = document.createElement('div')
+            $cell.className = 'cell'
+            $cell.innerHTML = el
+            $RMatrix.appendChild($cell)
+          })
+
+          $QMatrix.setAttribute('style', `grid-template-columns: repeat(${QMatrix._size[0]},1fr);`) 
+          $RMatrix.setAttribute('style', `grid-template-columns: repeat(${RMatrix._size[0]},1fr);`) 
         };
       })(f);
       r.readAsText(f, 'ansi');
