@@ -44,6 +44,20 @@ function readMultipleFiles(evt) {
             .unique()
 
           const QMatrix = math.matrix(math.zeros([allNodesNames.length, allComponentsNames.length]))
+
+          plate.forEach((node, j) => {
+            node.components.forEach((component) => {
+
+              const i = allComponentsNames.indexOf(component.name);
+              QMatrix._data[j][i] = 1
+            })
+          });
+          const RMatrix = math.multiply(QMatrix, math.transpose(QMatrix))
+          RMatrix._data.forEach((_, index) => {
+            RMatrix._data[index][index] = 0
+          })
+
+          
         };
       })(f);
       r.readAsText(f, 'ansi');
