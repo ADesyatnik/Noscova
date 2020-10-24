@@ -14,6 +14,8 @@ function readMultipleFiles(evt) {
   const p = document.getElementById('text_change');
   const $QMatrix = document.querySelector('#q-matrix')
   const $RMatrix = document.querySelector('#r-matrix')
+  $QMatrix.innerHTML = ''
+  $RMatrix.innerHTML = ''
 
   if (files) {
     for (var i = 0, f;
@@ -21,45 +23,45 @@ function readMultipleFiles(evt) {
       const r = new FileReader();
       r.onload = (function (f) {
         return function (e) {
-          const contents = e.target.result;
+          const contents = e.target.result.trim();
           p.innerHTML = contents;
           const data = contents.split(';')
           const plate = data.map(item => {
-            const nodeRow = item.split(' ').filter(i => i);
-            const nodeName = nodeRow[0].trim();
-            const components = nodeRow.splice(1);
-
-            return {
-              name: nodeName,
-              components: components.map(component => ({
-                name: component.split('(')[0],
-                nodeName,
-                output: component.split('(')[1].replace(')', '').replace("'", '')
-              })),
+            if (item) {
+              const nodeRow = item.split(' ').filter(i => i);
+              const nodeName = nodeRow[0].trim();
+              const components = nodeRow.splice(1);
+  
+              return {
+                name: nodeName,
+                components: components.map(component => ({
+                  name: component.split('(')[0],
+                  nodeName,
+                  output: component.split('(')[1].replace(')', '').replace("'", '')
+                })),
+              }
             }
-          })
+          }).filter(t=>t)
 
-          const allNodesNames = plate.map(node => node.name)
+          const allNodesNames = plate.map(node => node.name).filter(t=>t)
           const allComponentsNames = plate
             .map(node => node.components.map(component => component.name))
             .flat()
             .unique()
 
-          const QMatrix = math.matrix(math.zeros([allNodesNames.length, allComponentsNames.length]))
+          const QMatrix = math.matrix(math.zeros([allComponentsNames.length, allNodesNames.length]))
 
           plate.forEach((node, j) => {
             node.components.forEach((component) => {
 
               const i = allComponentsNames.indexOf(component.name);
-              QMatrix._data[j][i] = 1
+              QMatrix._data[i][j] = 1
             })
           });
           const RMatrix = math.multiply(QMatrix, math.transpose(QMatrix))
           RMatrix._data.forEach((_, index) => {
             RMatrix._data[index][index] = 0
           })
-
-          console.log({QMatrix, RMatrix})
 
           QMatrix.forEach(el => {
             const $cell = document.createElement('div')
@@ -74,8 +76,7 @@ function readMultipleFiles(evt) {
             $cell.innerHTML = el
             $RMatrix.appendChild($cell)
           })
-
-          $QMatrix.setAttribute('style', `grid-template-columns: repeat(${QMatrix._size[0]},1fr);`) 
+          $QMatrix.setAttribute('style', `grid-template-columns: repeat(${QMatrix._size[0]-1},1fr);`) 
           $RMatrix.setAttribute('style', `grid-template-columns: repeat(${RMatrix._size[0]},1fr);`) 
         };
       })(f);
